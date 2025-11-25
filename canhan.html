@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Mô phỏng ATTT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-card: #0f172a;
+      --bg-card-alt: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.15);
+      --accent-2: #a855f7;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --success: #4ade80;
+      --border: #1f2937;
+      --radius-xl: 18px;
+      --radius-lg: 12px;
+      --shadow-soft: 0 24px 60px rgba(15,23,42,0.8);
+      --shadow-chip: 0 4px 18px rgba(15,23,42,0.9);
+      --transition-fast: 0.15s ease-out;
+      --transition-med: 0.25s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 60%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+
+    /* HEADER + NAV: luôn xếp theo cột, nav ngang full width */
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 8px 0 24px;
+      align-items: stretch;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at 10% 0%, #38bdf8 0, transparent 45%),
+        radial-gradient(circle at 90% 120%, #a855f7 0, transparent 45%),
+        linear-gradient(135deg, #020617, #0b1120);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-chip);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-logo::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.25);
+    }
+
+    .brand-logo span {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #e5e7eb;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.03em;
+    }
+
+    .brand-text p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.35);
+      background: radial-gradient(circle at top, rgba(56,189,248,0.18), transparent 55%);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    /* NAV thanh ngang */
+    nav {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      justify-content: flex-start;
+    }
+
+    .nav-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.4);
+      padding: 6px 12px;
+      font-size: 12px;
+      background: rgba(15,23,42,0.9);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: border-color var(--transition-fast),
+                  background var(--transition-fast),
+                  transform var(--transition-fast),
+                  box-shadow var(--transition-fast),
+                  color var(--transition-fast),
+                  opacity var(--transition-fast);
+      opacity: 0.9;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: radial-gradient(circle at top, rgba(56,189,248,0.18), rgba(15,23,42,1));
+      transform: translateY(-1px);
+      box-shadow: 0 12px 25px rgba(15,23,42,0.8);
+      opacity: 1;
+    }
+
+    /* NAV ACTIVE: khi cuộn tới section tương ứng */
+    .nav-btn.active {
+      border-color: rgba(56,189,248,0.95);
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      color: #f9fafb;
+      box-shadow: 0 14px 32px rgba(37,99,235,0.7);
+      opacity: 1;
+    }
+
+    .nav-btn span.icon {
+      font-size: 14px;
+    }
+
+    /* MAIN: 1 cột từ trên xuống dưới */
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.06), rgba(15,23,42,1));
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      padding: 16px 16px 18px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.1), transparent 60%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-med);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      margin: 0 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .emoji {
+      font-size: 18px;
+    }
+
+    .card-subtitle {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--muted);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent-2);
+      box-shadow: 0 0 8px rgba(168,85,247,0.8);
+    }
+
+    .card-body {
+      margin-top: 12px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(31,41,55,0.9);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.95), rgba(2,6,23,1));
+      padding: 12px 12px 13px;
+    }
+
+    .collapser-btn {
+      width: 100%;
+      text-align: left;
+      border-radius: var(--radius-lg);
+      border: 1px dashed rgba(55,65,81,0.9);
+      padding: 7px 10px;
+      background: rgba(15,23,42,0.9);
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: border-color var(--transition-fast),
+                  background var(--transition-fast),
+                  color var(--transition-fast),
+                  transform var(--transition-fast);
+    }
+
+    .collapser-btn span.label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .collapser-btn .step-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .collapser-btn .chevron {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .collapser-btn:hover {
+      border-color: rgba(56,189,248,0.9);
+      background: radial-gradient(circle at top, rgba(15,23,42,1), rgba(2,6,23,1));
+      color: var(--text);
+      transform: translateY(-0.5px);
+    }
+
+    .section-content {
+      margin-top: 10px;
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .section-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .field {
+      margin-bottom: 8px;
+    }
+
+    .field label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: var(--muted);
+    }
+
+    .field small {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    textarea,
+    input[type="text"] {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(55,65,81,0.9);
+      padding: 7px 9px;
+      background: rgba(15,23,42,0.95);
+      color: var(--text);
+      font-size: 13px;
+      resize: vertical;
+      min-height: 30px;
+      outline: none;
+      transition: border-color var(--transition-fast),
+                  box-shadow var(--transition-fast),
+                  background var(--transition-fast);
+    }
+
+    textarea:focus,
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56,189,248,0.4);
+      background: rgba(15,23,42,1);
+    }
+
+    textarea {
+      min-height: 60px;
+      max-height: 200px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+      margin-bottom: 6px;
+    }
+
+    button.action-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.9);
+      padding: 5px 10px;
+      font-size: 12px;
+      background: rgba(15,23,42,1);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background var(--transition-fast),
+                  border-color var(--transition-fast),
+                  transform var(--transition-fast),
+                  box-shadow var(--transition-fast);
+    }
+
+    button.action-btn.primary {
+      border-color: rgba(56,189,248,0.85);
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      box-shadow: 0 12px 30px rgba(37,99,235,0.4);
+    }
+
+    button.action-btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 40px rgba(37,99,235,0.6);
+    }
+
+    button.action-btn.secondary {
+      border-color: rgba(148,163,184,0.7);
+    }
+
+    button.action-btn.secondary:hover {
+      border-color: var(--accent);
+      background: radial-gradient(circle at top, rgba(15,23,42,1), rgba(2,6,23,1));
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(15,23,42,0.9);
+    }
+
+    button.action-btn.danger {
+      border-color: rgba(248,113,113,0.8);
+      background: linear-gradient(135deg, #dc2626, #f97316);
+      box-shadow: 0 12px 30px rgba(248,113,113,0.5);
+    }
+
+    .output {
+      margin-top: 4px;
+      font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      border-radius: 10px;
+      padding: 7px 8px;
+      background: radial-gradient(circle at top, rgba(15,23,42,1), rgba(2,6,23,1));
+      border: 1px solid rgba(31,41,55,0.9);
+      max-height: 150px;
+      overflow: auto;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .output-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .status {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .status.ok {
+      color: var(--success);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .tiny-note {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Blockchain layout */
+    .chain {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+
+    .block {
+      border-radius: 10px;
+      padding: 6px 8px;
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.06), rgba(15,23,42,1));
+      border: 1px solid rgba(31,41,55,0.9);
+      font-family: "JetBrains Mono", ui-monospace;
+      font-size: 11px;
+    }
+
+    .block.invalid {
+      border-color: rgba(248,113,113,0.9);
+      box-shadow: 0 0 0 1px rgba(248,113,113,0.4);
+    }
+
+    .block-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+
+    .block-index {
+      font-weight: 600;
+    }
+
+    .chip {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.9);
+      color: var(--muted);
+    }
+
+    footer {
+      margin-top: 32px;
+      border-top: 1px solid rgba(31,41,55,0.9);
+      padding-top: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <header>
+    <div class="brand">
+      <div class="brand-logo"><span>IS</span></div>
+      <div class="brand-text">
+        <h1>Mô phỏng An toàn thông tin</h1>
+        <p>Các chủ đề: hàm băm, mã hóa đối xứng/bất đối xứng, chữ ký số, chứng thực, sinh trắc học, blockchain.</p>
+      </div>
+    </div>
+
+    <!-- NAV: mỗi nút có id để active -->
+    <nav>
+      <button class="nav-btn active" id="nav-hash" onclick="scrollToCard('hash-card')">
+        <span class="icon">#</span> <span>Hàm băm</span>
+      </button>
+      <button class="nav-btn" id="nav-sym" onclick="scrollToCard('sym-card')">
+        <span class="icon">🔐</span> <span>Mã đối xứng</span>
+      </button>
+      <button class="nav-btn" id="nav-asym" onclick="scrollToCard('asym-card')">
+        <span class="icon">🧬</span> <span>Mã bất đối xứng</span>
+      </button>
+      <button class="nav-btn" id="nav-sig" onclick="scrollToCard('sig-card')">
+        <span class="icon">✍️</span> <span>Chữ ký số</span>
+      </button>
+      <button class="nav-btn" id="nav-auth" onclick="scrollToCard('auth-card')">
+        <span class="icon">✅</span> <span>Chứng thực & Sinh trắc</span>
+      </button>
+      <button class="nav-btn" id="nav-bc" onclick="scrollToCard('bc-card')">
+        <span class="icon">⛓️</span> <span>Blockchain</span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 1. HASH -->
+    <section class="card" id="hash-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title"><span class="emoji">#️⃣</span> Hàm băm (Hash function)</h2>
+          <p class="card-subtitle">Biến dữ liệu đầu vào thành “dấu vân tay” cố định, khó đảo ngược.</p>
+        </div>
+        <span class="badge"><span class="badge-dot"></span> SHA-256 demo</span>
+      </div>
+      <div class="card-body">
+        <button class="collapser-btn" onclick="toggleSection('hash-section')">
+          <span class="label">
+            <span class="step-dot">1</span>
+            <span>Bấm để nhập dữ liệu và chạy hàm băm</span>
+          </span>
+          <span class="chevron">▼</span>
+        </button>
+        <div class="section-content" id="hash-section">
+          <div class="field">
+            <label for="hashInput">Chuỗi cần băm</label>
+            <textarea id="hashInput" placeholder="Ví dụ: matkhau123, thông điệp, JSON,..."></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="action-btn primary" onclick="hashMessage()">
+              <span>🔁</span> <span>Tính SHA-256 (Xác nhận & chạy)</span>
+            </button>
+            <button class="action-btn secondary" onclick="clearHash()">
+              <span>🧹</span> <span>Xóa</span>
+            </button>
+          </div>
+          <div>
+            <div class="output-label">Giá trị băm (hex)</div>
+            <div class="output" id="hashOutput">— Chưa có kết quả —</div>
+          </div>
+          <p class="tiny-note">
+            Hàm băm một chiều: cùng dữ liệu → luôn ra cùng hash; thay đổi 1 ký tự → hash khác hẳn.
+            Dùng trong lưu mật khẩu (kết hợp muối, lặp), kiểm tra toàn vẹn dữ liệu, blockchain,...
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. SYMMETRIC -->
+    <section class="card" id="sym-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title"><span class="emoji">🔐</span> Mã hóa đối xứng (AES-GCM)</h2>
+          <p class="card-subtitle">Cùng một khóa bí mật dùng cho cả mã hóa và giải mã.</p>
+        </div>
+        <span class="badge"><span class="badge-dot"></span> AES-256-GCM</span>
+      </div>
+      <div class="card-body">
+        <button class="collapser-btn" onclick="toggleSection('sym-section')">
+          <span class="label">
+            <span class="step-dot">2</span>
+            <span>Hiển thị các bước: tạo khóa → mã hóa → giải mã</span>
+          </span>
+          <span class="chevron">▼</span>
+        </button>
+        <div class="section-content" id="sym-section">
+          <div class="field">
+            <label for="symPlain">Bản rõ cần mã hóa</label>
+            <textarea id="symPlain" placeholder="Thông điệp bí mật của bạn..."></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="action-btn primary" onclick="generateSymKey()">
+              <span>🗝️</span> <span>Tạo khóa phiên (Xác nhận)</span>
+            </button>
+            <button class="action-btn secondary" onclick="encryptSym()">
+              <span>🔒</span> <span>Mã hóa với AES-GCM</span>
+            </button>
+            <button class="action-btn secondary" onclick="decryptSym()">
+              <span>🔓</span> <span>Giải mã</span>
+            </button>
+          </div>
+          <div class="field">
+            <label>Khóa bí mật (base64, 256-bit)</label>
+            <div class="output" id="symKey">— Bấm “Tạo khóa phiên” để sinh khóa —</div>
+          </div>
+          <div class="field">
+            <label>IV (nonce, base64)</label>
+            <div class="output" id="symIv">— Sẽ sinh khi bạn mã hóa —</div>
+          </div>
+          <div class="field">
+            <label>Bản mã (ciphertext, base64)</label>
+            <div class="output" id="symCipher">— Chưa có bản mã —</div>
+          </div>
+          <div class="field">
+            <label>Bản rõ sau khi giải mã</label>
+            <div class="output" id="symDecrypted">— Chưa giải mã —</div>
+          </div>
+          <p class="tiny-note">
+            Mã đối xứng nhanh, phù hợp mã hóa nhiều dữ liệu (đĩa, kênh VPN...). Vấn đề lớn là
+            phân phối khóa bí mật an toàn cho các bên. Trong thực tế, nó thường kết hợp với
+            mã bất đối xứng để trao đổi khóa.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ASYMMETRIC -->
+    <section class="card" id="asym-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title"><span class="emoji">🧬</span> Mã hóa bất đối xứng (RSA-OAEP)</h2>
+          <p class="card-subtitle">Dùng cặp khóa: khóa công khai để mã, khóa bí mật để giải.</p>
+        </div>
+        <span class="badge"><span class="badge-dot"></span> RSA 2048-bit</span>
+      </div>
+      <div class="card-body">
+        <button class="collapser-btn" onclick="toggleSection('asym-section')">
+          <span class="label">
+            <span class="step-dot">3</span>
+            <span>Tạo cặp khóa RSA → mã hóa → giải mã</span>
+          </span>
+          <span class="chevron">▼</span>
+        </button>
+        <div class="section-content" id="asym-section">
+          <div class="btn-row">
+            <button class="action-btn primary" onclick="generateRsaKeys()">
+              <span>🗝️</span> <span>Tạo cặp khóa RSA (Xác nhận)</span>
+            </button>
+          </div>
+          <div class="field">
+            <label>Khóa công khai (rút gọn, base64)</label>
+            <div class="output" id="rsaPublic">— Chưa tạo khóa —</div>
+          </div>
+          <div class="field">
+            <label>Khóa bí mật (rút gọn, base64)</label>
+            <div class="output" id="rsaPrivate">— Chưa tạo khóa —</div>
+          </div>
+          <div class="field">
+            <label for="rsaPlain">Thông điệp cần mã hóa (ngắn)</label>
+            <textarea id="rsaPlain" placeholder="RSA thường dùng để mã hóa khóa đối xứng, ở đây mã hóa thông điệp ngắn để demo."></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="action-btn secondary" onclick="rsaEncrypt()">
+              <span>🔒</span> <span>Mã hóa bằng khóa công khai</span>
+            </button>
+            <button class="action-btn secondary" onclick="rsaDecrypt()">
+              <span>🔓</span> <span>Giải mã bằng khóa bí mật</span>
+            </button>
+          </div>
+          <div class="field">
+            <label>Bản mã (base64)</label>
+            <div class="output" id="rsaCipher">— Chưa có bản mã —</div>
+          </div>
+          <div class="field">
+            <label>Bản rõ sau khi giải mã</label>
+            <div class="output" id="rsaDecrypted">— Chưa giải mã —</div>
+          </div>
+          <p class="tiny-note">
+            Mã bất đối xứng giải quyết bài toán phân phối khóa: bạn công bố khóa công khai,
+            giữ bí mật khóa riêng. Bất kỳ ai cũng mã hóa được cho bạn nhưng chỉ bạn giải mã được.
+            Nhược điểm là chậm, nên thường chỉ dùng để mã hóa khóa phiên (sau đó dùng AES để mã hóa dữ liệu).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. DIGITAL SIGNATURE -->
+    <section class="card" id="sig-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title"><span class="emoji">✍️</span> Chữ ký số (RSA-PSS)</h2>
+          <p class="card-subtitle">Đảm bảo: xác thực nguồn gốc, toàn vẹn, chống chối bỏ.</p>
+        </div>
+        <span class="badge"><span class="badge-dot"></span> RSA-PSS / SHA-256</span>
+      </div>
+      <div class="card-body">
+        <button class="collapser-btn" onclick="toggleSection('sig-section')">
+          <span class="label">
+            <span class="step-dot">4</span>
+            <span>Tạo cặp khóa ký số → ký → kiểm tra</span>
+          </span>
+          <span class="chevron">▼</span>
+        </button>
+        <div class="section-content" id="sig-section">
+          <div class="btn-row">
+            <button class="action-btn primary" onclick="generateSignKeys()">
+              <span>🗝️</span> <span>Tạo cặp khóa chữ ký (Xác nhận)</span>
+            </button>
+          </div>
+          <div class="field">
+            <label>Khóa công khai (rút gọn, base64)</label>
+            <div class="output" id="sigPublic">— Chưa tạo khóa —</div>
+          </div>
+          <div class="field">
+            <label>Khóa bí mật (rút gọn, base64)</label>
+            <div class="output" id="sigPrivate">— Chưa tạo khóa —</div>
+          </div>
+          <div class="field">
+            <label for="sigInput">Thông điệp cần ký</label>
+            <textarea id="sigInput" placeholder="Ví dụ: Nội dung hợp đồng, hóa đơn điện tử, thông điệp giao dịch..."></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="action-btn secondary" onclick="signMessage()">
+              <span>✒️</span> <span>Tạo chữ ký số</span>
+            </button>
+            <button class="action-btn secondary" onclick="verifySignature()">
+              <span>🧐</span> <span>Kiểm tra chữ ký</span>
+            </button>
+          </div>
+          <div class="field">
+            <label>Chữ ký số (base64)</label>
+            <div class="output" id="sigOutput">— Chưa có chữ ký —</div>
+          </div>
+          <div class="status" id="sigStatus">— Chưa kiểm tra —</div>
+          <p class="tiny-note">
+            Chữ ký số hoạt động (tóm tắt): băm thông điệp → dùng khóa bí mật để ký → bên nhận dùng
+            khóa công khai để kiểm tra. Nếu nội dung thay đổi hoặc dùng sai khóa công khai thì kiểm tra sẽ thất bại.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. AUTH + BIOMETRICS -->
+    <section class="card" id="auth-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title"><span class="emoji">✅</span> Chứng thực & Sinh trắc học</h2>
+          <p class="card-subtitle">Minh họa xác thực đa yếu tố: mật khẩu + OTP + sinh trắc (giả lập).</p>
+        </div>
+        <span class="badge"><span class="badge-dot"></span> Authentication</span>
+      </div>
+      <div class="card-body">
+        <button class="collapser-btn" onclick="toggleSection('auth-section')">
+          <span class="label">
+            <span class="step-dot">5</span>
+            <span>Mở mô phỏng đăng nhập an toàn</span>
+          </span>
+          <span class="chevron">▼</span>
+        </button>
+        <div class="section-content" id="auth-section">
+          <div class="field">
+            <label for="authUser">Tài khoản (giả lập)</label>
+            <input id="authUser" type="text" placeholder="vd: student01">
+          </div>
+          <div class="field">
+            <label for="authPass">Mật khẩu</label>
+            <input id="authPass" type="text" placeholder="mật khẩu demo là: 123456">
+            <small>Mật khẩu thật phải đủ mạnh, không nên giống ví dụ này 😉</small>
+          </div>
+          <div class="field">
+            <label for="authOtp">Mã OTP</label>
+            <input id="authOtp" type="text" placeholder="mã OTP demo là: 000999">
+            <small>Yếu tố “những gì bạn có” (ứng dụng OTP, SMS, token...).</small>
+          </div>
+          <div class="field">
+            <label>Sinh trắc (giả lập): <span style="color:var(--muted)">những gì vốn có (vân tay, khuôn mặt...)</span></label>
+            <div class="btn-row">
+              <button class="action-btn secondary" onclick="fakeBiometric('finger')">
+                <span>☝️</span> <span>Quét vân tay (demo)</span>
+              </button>
+              <button class="action-btn secondary" onclick="fakeBiometric('face')">
+                <span>🙂</span> <span>Nhận diện khuôn mặt (demo)</span>
+              </button>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="action-btn primary" onclick="attemptLogin()">
+              <span>🚪</span> <span>Đăng nhập (kiểm tra các yếu tố)</span>
+            </button>
+            <button class="action-btn secondary" onclick="resetAuth()">
+              <span>🧹</span> <span>Reset</span>
+            </button>
+          </div>
+          <div class="status" id="authStatus">— Chưa đăng nhập —</div>
+          <p class="tiny-note">
+            Xác thực có thể dựa trên:
+            <br>• <b>Những gì bạn biết</b>: mật khẩu, PIN.
+            <br>• <b>Những gì bạn có</b>: điện thoại nhận OTP, token phần cứng.
+            <br>• <b>Những gì vốn có</b>: sinh trắc học (vân tay, giọng nói, khuôn mặt, võng mạc...).
+            <br>Đa yếu tố (2FA/MFA) an toàn hơn nhiều so với chỉ dùng 1 yếu tố.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. BLOCKCHAIN -->
+    <section class="card" id="bc-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title"><span class="emoji">⛓️</span> Blockchain mini-demo</h2>
+          <p class="card-subtitle">Chuỗi khối đơn giản: mỗi block chứa hash của block trước.</p>
+        </div>
+        <span class="badge"><span class="badge-dot"></span> Hash-linked chain</span>
+      </div>
+      <div class="card-body">
+        <button class="collapser-btn" onclick="toggleSection('bc-section')">
+          <span class="label">
+            <span class="step-dot">6</span>
+            <span>Thêm block & thử “giả mạo” dữ liệu</span>
+          </span>
+          <span class="chevron">▼</span>
+        </button>
+        <div class="section-content" id="bc-section">
+          <div class="field">
+            <label for="blockData">Dữ liệu block mới</label>
+            <textarea id="blockData" placeholder="vd: Giao dịch 1 gửi 5 coin cho 2... (để trống sẽ sinh text demo)"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="action-btn primary" onclick="addBlock()">
+              <span>➕</span> <span>Thêm block vào chain</span>
+            </button>
+            <button class="action-btn secondary" onclick="tamperBlock()">
+              <span>⚠️</span> <span>Giả mạo dữ liệu block #1</span>
+            </button>
+            <button class="action-btn secondary" onclick="resetChain()">
+              <span>🧹</span> <span>Xóa & tạo lại blockchain</span>
+            </button>
+          </div>
+          <div class="chain" id="chainView">
+            <!-- Blocks sẽ render ở đây -->
+          </div>
+          <p class="tiny-note">
+            Mỗi block chứa: index, thời gian, dữ liệu, <code>prevHash</code> và <code>hash</code>.
+            Nếu cố sửa dữ liệu một block, hash của block đó sẽ đổi → không còn khớp với
+            <code>prevHash</code> của block phía sau, chuỗi bị “gãy”. Thực tế blockchain
+            còn có đồng thuận, chữ ký số, PoW/PoS... phức tạp hơn nhiều.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    23728961 - Trần Duy Khang
+</footer>
+</div>
+
+<script>
+  /* ====== UTILITIES ====== */
+  function scrollToCard(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setActiveNav(id); // set active ngay khi click
+  }
+
+  function toggleSection(id) {
+    const section = document.getElementById(id);
+    if (!section) return;
+    section.classList.toggle('active');
+  }
+
+  function bufferToHex(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let hex = '';
+    for (let b of bytes) {
+      hex += b.toString(16).padStart(2, '0');
+    }
+    return hex;
+  }
+
+  function bufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+
+  function base64ToBuffer(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
+
+  const textEncoder = new TextEncoder();
+  const textDecoder = new TextDecoder();
+
+  /* ====== 1. HASH ====== */
+  async function hashMessage() {
+    const input = document.getElementById('hashInput').value;
+    const outputEl = document.getElementById('hashOutput');
+
+    if (!input) {
+      alert('Vui lòng nhập chuỗi cần băm.');
+      return;
+    }
+    try {
+      const data = textEncoder.encode(input);
+      const digest = await crypto.subtle.digest('SHA-256', data);
+      outputEl.textContent = bufferToHex(digest);
+    } catch (err) {
+      console.error(err);
+      outputEl.textContent = 'Lỗi khi tính hash: ' + err.message;
+    }
+  }
+
+  function clearHash() {
+    document.getElementById('hashInput').value = '';
+    document.getElementById('hashOutput').textContent = '— Chưa có kết quả —';
+  }
+
+  /* ====== 2. SYMMETRIC AES-GCM ====== */
+  let symKey = null;
+  let symIv = null;
+  let symCiphertext = null;
+
+  async function generateSymKey() {
+    try {
+      symKey = await crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt']
+      );
+      const raw = await crypto.subtle.exportKey('raw', symKey);
+      document.getElementById('symKey').textContent = bufferToBase64(raw);
+      document.getElementById('symIv').textContent = '— Sẽ sinh khi bạn mã hóa —';
+      document.getElementById('symCipher').textContent = '— Chưa có bản mã —';
+      document.getElementById('symDecrypted').textContent = '— Chưa giải mã —';
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi sinh khóa AES: ' + err.message);
+    }
+  }
+
+  async function encryptSym() {
+    if (!symKey) {
+      alert('Chưa có khóa đối xứng. Vui lòng bấm “Tạo khóa phiên” trước.');
+      return;
+    }
+    const plain = document.getElementById('symPlain').value;
+    if (!plain) {
+      alert('Vui lòng nhập bản rõ cần mã hóa.');
+      return;
+    }
+    try {
+      const data = textEncoder.encode(plain);
+      symIv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV
+      const cipherBuf = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: symIv },
+        symKey,
+        data
+      );
+      symCiphertext = cipherBuf;
+      document.getElementById('symIv').textContent = bufferToBase64(symIv.buffer);
+      document.getElementById('symCipher').textContent = bufferToBase64(cipherBuf);
+      document.getElementById('symDecrypted').textContent = '— Chưa giải mã —';
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi mã hóa AES: ' + err.message);
+    }
+  }
+
+  async function decryptSym() {
+    if (!symKey || !symCiphertext || !symIv) {
+      alert('Chưa có dữ liệu để giải mã. Hãy thực hiện mã hóa trước.');
+      return;
+    }
+    try {
+      const plainBuf = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: symIv },
+        symKey,
+        symCiphertext
+      );
+      const plain = textDecoder.decode(plainBuf);
+      document.getElementById('symDecrypted').textContent = plain;
+    } catch (err) {
+      console.error(err);
+      alert('Giải mã thất bại: ' + err.message);
+    }
+  }
+
+  /* ====== 3. ASYMMETRIC RSA-OAEP ====== */
+  let rsaKeyPair = null;
+  let rsaCipherBuf = null;
+
+  async function generateRsaKeys() {
+    try {
+      rsaKeyPair = await crypto.subtle.generateKey(
+        {
+          name: 'RSA-OAEP',
+          modulusLength: 2048,
+          publicExponent: new Uint8Array([1, 0, 1]),
+          hash: 'SHA-256',
+        },
+        true,
+        ['encrypt', 'decrypt']
+      );
+      const spki = await crypto.subtle.exportKey('spki', rsaKeyPair.publicKey);
+      const pkcs8 = await crypto.subtle.exportKey('pkcs8', rsaKeyPair.privateKey);
+      const pub = bufferToBase64(spki);
+      const priv = bufferToBase64(pkcs8);
+      document.getElementById('rsaPublic').textContent = pub.slice(0, 140) + (pub.length > 140 ? '…' : '');
+      document.getElementById('rsaPrivate').textContent = priv.slice(0, 140) + (priv.length > 140 ? '…' : '');
+      document.getElementById('rsaCipher').textContent = '— Chưa có bản mã —';
+      document.getElementById('rsaDecrypted').textContent = '— Chưa giải mã —';
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi sinh cặp khóa RSA: ' + err.message);
+    }
+  }
+
+  async function rsaEncrypt() {
+    if (!rsaKeyPair) {
+      alert('Chưa có cặp khóa RSA. Vui lòng bấm “Tạo cặp khóa RSA” trước.');
+      return;
+    }
+    const plain = document.getElementById('rsaPlain').value;
+    if (!plain) {
+      alert('Vui lòng nhập thông điệp cần mã hóa.');
+      return;
+    }
+    try {
+      const data = textEncoder.encode(plain);
+      const cipherBuf = await crypto.subtle.encrypt(
+        { name: 'RSA-OAEP' },
+        rsaKeyPair.publicKey,
+        data
+      );
+      rsaCipherBuf = cipherBuf;
+      document.getElementById('rsaCipher').textContent = bufferToBase64(cipherBuf);
+      document.getElementById('rsaDecrypted').textContent = '— Chưa giải mã —';
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi mã hóa RSA: ' + err.message);
+    }
+  }
+
+  async function rsaDecrypt() {
+    if (!rsaKeyPair || !rsaCipherBuf) {
+      alert('Chưa có dữ liệu để giải mã. Hãy mã hóa trước.');
+      return;
+    }
+    try {
+      const plainBuf = await crypto.subtle.decrypt(
+        { name: 'RSA-OAEP' },
+        rsaKeyPair.privateKey,
+        rsaCipherBuf
+      );
+      const plain = textDecoder.decode(plainBuf);
+      document.getElementById('rsaDecrypted').textContent = plain;
+    } catch (err) {
+      console.error(err);
+      alert('Giải mã RSA thất bại: ' + err.message);
+    }
+  }
+
+  /* ====== 4. DIGITAL SIGNATURE RSA-PSS ====== */
+  let signKeyPair = null;
+  let lastSignature = null;
+
+  async function generateSignKeys() {
+    try {
+      signKeyPair = await crypto.subtle.generateKey(
+        {
+          name: 'RSA-PSS',
+          modulusLength: 2048,
+          publicExponent: new Uint8Array([1, 0, 1]),
+          hash: 'SHA-256',
+        },
+        true,
+        ['sign', 'verify']
+      );
+      const spki = await crypto.subtle.exportKey('spki', signKeyPair.publicKey);
+      const pkcs8 = await crypto.subtle.exportKey('pkcs8', signKeyPair.privateKey);
+      const pub = bufferToBase64(spki);
+      const priv = bufferToBase64(pkcs8);
+      document.getElementById('sigPublic').textContent = pub.slice(0, 140) + (pub.length > 140 ? '…' : '');
+      document.getElementById('sigPrivate').textContent = priv.slice(0, 140) + (priv.length > 140 ? '…' : '');
+      document.getElementById('sigOutput').textContent = '— Chưa có chữ ký —';
+      const statusEl = document.getElementById('sigStatus');
+      statusEl.textContent = '— Chưa kiểm tra —';
+      statusEl.className = 'status';
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi sinh cặp khóa chữ ký số: ' + err.message);
+    }
+  }
+
+  async function signMessage() {
+    if (!signKeyPair) {
+      alert('Chưa có cặp khóa chữ ký. Vui lòng bấm “Tạo cặp khóa chữ ký”.');
+      return;
+    }
+    const msg = document.getElementById('sigInput').value;
+    if (!msg) {
+      alert('Vui lòng nhập thông điệp cần ký.');
+      return;
+    }
+    try {
+      const data = textEncoder.encode(msg);
+      const signature = await crypto.subtle.sign(
+        { name: 'RSA-PSS', saltLength: 32 },
+        signKeyPair.privateKey,
+        data
+      );
+      lastSignature = signature;
+      const b64 = bufferToBase64(signature);
+      document.getElementById('sigOutput').textContent = b64;
+      const statusEl = document.getElementById('sigStatus');
+      statusEl.textContent = 'Chưa kiểm tra chữ ký – hãy bấm “Kiểm tra chữ ký”.';
+      statusEl.className = 'status';
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi ký: ' + err.message);
+    }
+  }
+
+  async function verifySignature() {
+    if (!signKeyPair) {
+      alert('Chưa có cặp khóa chữ ký.');
+      return;
+    }
+    const statusEl = document.getElementById('sigStatus');
+    const msg = document.getElementById('sigInput').value;
+    const sigB64 = document.getElementById('sigOutput').textContent.trim();
+    if (!msg || !sigB64 || sigB64.startsWith('—')) {
+      alert('Cần cả thông điệp và chữ ký để kiểm tra.');
+      return;
+    }
+    try {
+      const data = textEncoder.encode(msg);
+      const signature = base64ToBuffer(sigB64);
+      const ok = await crypto.subtle.verify(
+        { name: 'RSA-PSS', saltLength: 32 },
+        signKeyPair.publicKey,
+        signature,
+        data
+      );
+      if (ok) {
+        statusEl.textContent = '✅ Chữ ký hợp lệ (đúng khóa công khai & đúng nội dung).';
+        statusEl.className = 'status ok';
+      } else {
+        statusEl.textContent = '❌ Chữ ký KHÔNG hợp lệ (nội dung đã thay đổi hoặc sai khóa).';
+        statusEl.className = 'status error';
+      }
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = 'Lỗi khi kiểm tra chữ ký: ' + err.message;
+      statusEl.className = 'status error';
+    }
+  }
+
+  /* ====== 5. AUTH + BIOMETRICS (FAKE DEMO) ====== */
+  let biometricOk = false;
+
+  function fakeBiometric(type) {
+    biometricOk = true;
+    const statusEl = document.getElementById('authStatus');
+    if (type === 'finger') {
+      statusEl.textContent = '✅ Vân tay (demo) đã được “chấp nhận”.';
+    } else {
+      statusEl.textContent = '✅ Khuôn mặt (demo) đã được “chấp nhận”.';
+    }
+    statusEl.className = 'status ok';
+  }
+
+  function attemptLogin() {
+    const user = document.getElementById('authUser').value.trim();
+    const pass = document.getElementById('authPass').value.trim();
+    const otp = document.getElementById('authOtp').value.trim();
+    const statusEl = document.getElementById('authStatus');
+
+    const correctPass = '123456';
+    const correctOtp = '000999';
+
+    if (!user || !pass || !otp) {
+      alert('Vui lòng nhập đủ tài khoản, mật khẩu và OTP.');
+      return;
+    }
+
+    if (pass !== correctPass || otp !== correctOtp) {
+      statusEl.textContent = '❌ Sai mật khẩu hoặc OTP (demo).';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    if (!biometricOk) {
+      statusEl.textContent = '⚠️ Mật khẩu & OTP đúng, nhưng chưa thực hiện sinh trắc (demo).';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    statusEl.textContent = '✅ Đăng nhập thành công (demo): đủ 3 yếu tố.';
+    statusEl.className = 'status ok';
+  }
+
+  function resetAuth() {
+    document.getElementById('authUser').value = '';
+    document.getElementById('authPass').value = '';
+    document.getElementById('authOtp').value = '';
+    biometricOk = false;
+    const statusEl = document.getElementById('authStatus');
+    statusEl.textContent = '— Chưa đăng nhập —';
+    statusEl.className = 'status';
+  }
+
+  /* ====== 6. BLOCKCHAIN MINI-DEMO ====== */
+  let blockchain = [];
+
+  async function computeHash(prevHash, timestamp, data) {
+    const input = prevHash + '|' + timestamp + '|' + data;
+    const digest = await crypto.subtle.digest('SHA-256', textEncoder.encode(input));
+    return bufferToHex(digest);
+  }
+
+  async function addBlock() {
+    const dataInput = document.getElementById('blockData').value.trim();
+    const data = dataInput || `Demo block #${blockchain.length}`;
+    const index = blockchain.length;
+    const timestamp = new Date().toISOString();
+    const prevHash = index === 0 ? 'GENESIS' : blockchain[index - 1].hash;
+    const hash = await computeHash(prevHash, timestamp, data);
+    blockchain.push({ index, timestamp, data, prevHash, hash });
+    document.getElementById('blockData').value = '';
+    renderChain();
+  }
+
+  function renderChain() {
+    const container = document.getElementById('chainView');
+    container.innerHTML = '';
+    for (let i = 0; i < blockchain.length; i++) {
+      const block = blockchain[i];
+      const isValidPrev =
+        i === 0 ? block.prevHash === 'GENESIS'
+                : block.prevHash === blockchain[i - 1].hash;
+      const blockEl = document.createElement('div');
+      blockEl.className = 'block' + (isValidPrev ? '' : ' invalid');
+      blockEl.innerHTML = `
+        <div class="block-header-row">
+          <span class="block-index">Block #${block.index}</span>
+          <span class="chip">${isValidPrev ? 'OK' : 'BROKEN'}</span>
+        </div>
+        <div><b>time</b>: ${block.timestamp}</div>
+        <div><b>data</b>: ${escapeHtml(block.data)}</div>
+        <div><b>prevHash</b>: ${block.prevHash}</div>
+        <div><b>hash</b>: ${block.hash}</div>
+      `;
+      container.appendChild(blockEl);
+    }
+    if (blockchain.length === 0) {
+      container.textContent = '— Chưa có block nào. Hãy bấm “Thêm block vào chain”. —';
+    }
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  async function tamperBlock() {
+    if (blockchain.length < 2) {
+      alert('Cần ít nhất 2 block để demo giả mạo (block #0 và block #1).');
+      return;
+    }
+    blockchain[1].data = blockchain[1].data + ' [ĐÃ BỊ GIẢ MẠO]';
+    const b1 = blockchain[1];
+    computeHash(b1.prevHash, b1.timestamp, b1.data).then(newHash => {
+      b1.hash = newHash;
+      renderChain();
+      alert('Đã giả mạo dữ liệu block #1. Hãy xem trạng thái chuỗi (block sau bị BROKEN).');
+    });
+  }
+
+  function resetChain() {
+    blockchain = [];
+    renderChain();
+  }
+
+  // ====== NAV ACTIVE với IntersectionObserver ======
+  const sectionToNavId = {
+    'hash-card': 'nav-hash',
+    'sym-card': 'nav-sym',
+    'asym-card': 'nav-asym',
+    'sig-card': 'nav-sig',
+    'auth-card': 'nav-auth',
+    'bc-card': 'nav-bc'
+  };
+
+  function setActiveNav(sectionId) {
+    const navButtons = document.querySelectorAll('.nav-btn');
+    navButtons.forEach(btn => btn.classList.remove('active'));
+    const navId = sectionToNavId[sectionId];
+    if (!navId) return;
+    const activeBtn = document.getElementById(navId);
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+
+  // Tạo observer
+  const observerOptions = {
+    root: null,
+    threshold: 0.4
+  };
+
+  const observerCallback = (entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        setActiveNav(entry.target.id);
+      }
+    });
+  };
+
+  const sectionObserver = new IntersectionObserver(observerCallback, observerOptions);
+  Object.keys(sectionToNavId).forEach(sectionId => {
+    const section = document.getElementById(sectionId);
+    if (section) sectionObserver.observe(section);
+  });
+
+  // Khởi tạo chain rỗng
+  renderChain();
+</script>
+</body>
+</html>
